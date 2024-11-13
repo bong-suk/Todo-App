@@ -1,85 +1,108 @@
-import { useState } from "react";
-import "./App.css";
+import React, { useState } from "react";
 
 function App() {
-  const [todoList, setTodoList] = useState([
-    { id: 0, content: "123" },
-    { id: 1, content: "코딩 공부하기" },
-    { id: 2, content: "잠 자기" },
-  ]);
-
-  return (
-    <>
-      <TodoList todoList={todoList} setTodoList={setTodoList} />
-      <hr />
-      <TodoInput todoList={todoList} setTodoList={setTodoList} />
-    </>
-  );
-}
-
-function TodoInput({ todoList, setTodoList }) {
+  const [todoList, setTodoList] = useState([]);
   const [inputValue, setInputValue] = useState("");
 
-  return (
-    <>
-      <input
-        value={inputValue}
-        onChange={(event) => setInputValue(event.target.value)}
-      />
-      <button
-        onClick={() => {
-          const newTodo = { id: Number(new Date()), content: inputValue };
-          const newTodoList = [...todoList, newTodo];
-          setTodoList(newTodoList);
-          setInputValue("");
-        }}
-      >
-        추가하기
-      </button>
-    </>
-  );
-}
+  const addTodo = () => {
+    setTodoList([
+      ...todoList,
+      {
+        id: Date.now(),
+        content: inputValue,
+        isCompleted: false,
+        isEditing: false,
+      },
+    ]);
+    setInputValue("");
+  };
 
-function TodoList({ todoList, setTodoList }) {
-  return (
-    <ul>
-      {todoList.map((todo) => (
-        <Todo key={todo.id} todo={todo} setTodoList={setTodoList} />
-      ))}
-    </ul>
-  );
-}
+  const toggleComplete = (id) => {
+    setTodoList((prev) =>
+      prev.map((todo) =>
+        todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo
+      )
+    );
+  };
 
-function Todo({ todo, setTodoList }) {
-  const [inputValue, setInputValue] = useState("");
+  const editTodo = (id) => {
+    setTodoList((prev) =>
+      prev.map((todo) =>
+        todo.id === id ? { ...todo, isEditing: !todo.isEditing } : todo
+      )
+    );
+  };
+
+  const updateTodo = (id, newContent) => {
+    setTodoList((prev) =>
+      prev.map((todo) =>
+        todo.id === id
+          ? { ...todo, content: newContent, isEditing: false }
+          : todo
+      )
+    );
+  };
+
+  const deleteTodo = (id) => {
+    setTodoList((prev) => prev.filter((todo) => todo.id !== id));
+  };
+
   return (
-    <li>
-      {todo.content}
-      <input
-        value={inputValue}
-        onChange={(event) => setInputValue(event.target.value)}
-      />
-      <button
-        onClick={() => {
-          setTodoList((prev) =>
-            prev.map((el) =>
-              el.id === todo.id ? { ...el, content: inputValue } : el
-            )
-          );
-        }}
-      >
-        수정
-      </button>
-      <button
-        onClick={() => {
-          setTodoList((prev) => {
-            return prev.filter((el) => el.id !== todo.id);
-          });
-        }}
-      >
-        삭제
-      </button>
-    </li>
+    <div className="container">
+      <header>
+        <h1>My Todo-App</h1>
+      </header>
+      <main>
+        <div className="input-area">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="할 일을 입력하세요"
+          />
+          <button onClick={addTodo}>추가하기</button>
+        </div>
+        <ul className="todo-list">
+          {todoList.map((todo) => (
+            <li key={todo.id} className="todo-item">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={todo.isCompleted}
+                  onChange={() => toggleComplete(todo.id)}
+                />
+                <span
+                  style={{
+                    textDecoration: todo.isCompleted ? "line-through" : "none",
+                  }}
+                >
+                  {todo.content}
+                </span>
+              </label>
+              <div className="buttons">
+                {todo.isEditing ? (
+                  <>
+                    <input
+                      type="text"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                    />
+                    <button onClick={() => updateTodo(todo.id, inputValue)}>
+                      수정완료
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => editTodo(todo.id)}>수정</button>
+                    <button onClick={() => deleteTodo(todo.id)}>삭제</button>
+                  </>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </main>
+    </div>
   );
 }
 
